@@ -24,19 +24,16 @@ module RuCaptcha
       store_info = RuCaptcha.cache.read(rucaptcha_sesion_key_key)
       # make sure move used key
       RuCaptcha.cache.delete(rucaptcha_sesion_key_key)
-
       # Make sure session exist
       if store_info.blank?
         return add_rucaptcha_validation_error
       end
-
       # Make sure not expire
       if (Time.now.to_i - store_info[:time]) > RuCaptcha.config.expires_in
         return add_rucaptcha_validation_error
       end
-
       # Make sure parama have captcha
-      captcha = (params[:_rucaptcha] || '').downcase.strip
+      captcha = (params[:user][:_rucaptcha] || '').downcase.strip
       if captcha.blank?
         return add_rucaptcha_validation_error
       end
@@ -44,7 +41,6 @@ module RuCaptcha
       if captcha != store_info[:code]
         return add_rucaptcha_validation_error
       end
-
       true
     end
 
@@ -52,7 +48,7 @@ module RuCaptcha
 
     def add_rucaptcha_validation_error
       if defined?(resource) && resource && resource.respond_to?(:errors)
-        resource.errors.add(:base, t('rucaptcha.invalid'))
+        resource.errors.add(:_rucaptcha, t('rucaptcha.invalid'))
       end
       false
     end
